@@ -12,11 +12,19 @@ class UsersProfileTest < ActionDispatch::IntegrationTest
     assert_template 'users/show'
     assert_select 'title', full_title(@user.name)
     assert_select 'h1', text: @user.name
+    assert_select ".stats > a[href=?]", following_user_path(@user), count: 1
+    assert_select ".stats > a[href=?]", followers_user_path(@user), count: 1
     assert_select 'h1>img.gravatar'
     assert_match @user.microposts.count.to_s, response.body
     assert_select 'div.pagination', count: 1
     @user.microposts.paginate(page: 1).each do |micropost|
       assert_match micropost.content, response.body
     end
+
+    log_in_as(@user)
+    get root_path
+    assert_template 'static_pages/home'
+    assert_select ".stats > a[href=?]", following_user_path(@user), count: 1
+    assert_select ".stats > a[href=?]", followers_user_path(@user), count: 1
   end
 end
